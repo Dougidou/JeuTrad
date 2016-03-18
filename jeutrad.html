@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html >
+<head>
+	<script src="./bootstrap/css/bootstrap.css"></script> 
+	<script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+
+
+	<script language="JavaScript">
+
+	var vie = 10;							//nb de vies au départ
+	function fvie(mot)
+	{
+		var input = document.getElementById('inputtrad').value;
+		var containlife = document.getElementById("vie");
+		containlife.innerHTML = vie;			//insertion du nb de vies dans l'html
+		if(input==""){
+		}else{
+			if(mot === input ){
+				alert("Bonne reponse");
+				vie++;							//ajout de vie si gagné
+			}
+			else
+			{	
+				alert("Mauvaise reponse");
+				vie--;							//retrait de vie si perdu
+				containlife.innerHTML = vie;
+			}
+			console.log(vie);
+			if(vie == 20){
+				alert("Vous avez gagné");
+				location.reload(); 				//recharge la page si le nombre de vies atteint 20
+			}
+
+			if(vie == 0){
+				alert("vous avez perdu");
+				location.reload(); 				//recharge la page si le nb de vies atteint 0
+			}			
+			return vie;
+		}
+		return;
+
+	};
+
+	function requestajax()
+	{
+		var x ;
+		var tableau = [];
+		var req = null; 
+
+		if (window.XMLHttpRequest)
+		{
+			req = new XMLHttpRequest();			//Firefox, Safari ...
+
+		} 
+		else if (window.ActiveXObject) 			//Internet Explorer
+		{
+			try {
+				req = new ActiveXObject("Msxml2.XMLHTTP");
+			} catch (e)
+			{
+				try {
+					req = new ActiveXObject("Microsoft.XMLHTTP");
+				} catch (e) {}
+			}
+		}
+
+
+		req.onreadystatechange = function()
+		{ 
+			if(req.readyState == 4)				//requete terminée
+			{
+				if(req.status == 200)			//Page trouvée
+				{
+					var liste = req.responseText;
+					x = Math.floor((Math.random() * 7973)+1);				//generation aléatoire
+					var string = liste.split('\n')[x];						//selection du mot dans verbe.txt
+					document.ajax.dyn.value=string;							//stockage du mot 
+					var mot;
+					var texte = document.getElementById('texteatraduire').value;
+					jQuery.ajax({
+						url: 'https://translate.yandex.net/api/v1.5/tr.json/translate?key=trnsl.1.1.20140720T191145Z.05605441c6ee16dc.eaaf6c6c8690cb5fb094cea2bfec4f787af6170c&lang=fr-en&text='+texte,
+						dataType: 'jsonp',							//stocke la traduction dans un fichier json	
+						success: function (data) {					//lanceement si obtention fichier json
+							mot = data.text[0];						//recupere le mot traduit dans json
+							var taille = mot.length;				//recupere l taille du mot
+							var lettre = mot[0];					//recuper la premiere lettre du mot
+							var container = document.getElementById("lettre");
+							container.innerHTML = lettre;				//ecrit la premiere lettre dans le div
+							var container2 = document.getElementById("taillemot");
+							container2.innerHTML = taille;				//ecrit la taille du mot dans le div
+							document.getElementById("inputtrad").value = "";
+							fvie(mot);									//renvoie le mot pour la function fvie
+						}
+
+
+					});
+
+				}	
+				else	
+				{
+					document.ajax.dyn.value="Error: returned status code " + req.status + " " + req.statusText;		//Page non trouvée
+				}	
+			} 
+		}; 
+
+
+		req.open("GET", "verbe.txt", true); 
+		req.send(); 
+	};
+
+	</script>
+	<title>Jeu de traduction Francais/Anglais</title></head>
+
+	<body onload="requestajax(); ">
+		<FORM name="ajax" method="" action="">
+			<H1>Bienvenue dans le jeu de traduction Anglais/Francais !</H1>
+			<p>
+				Veuillez Traduire : <input type="text" id="texteatraduire" name="dyn" readonly>
+			</p>
+			<p>
+				Votre Traduction : <input type="text" id="inputtrad" name=""  required >
+			</p>
+			Commence par 
+			<div id="lettre"></div> 
+			et a <div id="taillemot"></div> 
+			lettres
+			<br>
+			Vous avez <div id="vie"></div> vies
+			<p>
+				<INPUT type="BUTTON" value="Valider"  ONCLICK="requestajax();fvie();">
+				</p>
+			</FORM>
+		</body>
+		</html>
